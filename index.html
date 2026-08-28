@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Preços · Madeireiras</title>
+</head>
+<body>
+<style>
+  :root{
+    --bg:#f4ede1;
+    --wood:#8a5a34;
+    --wood-dark:#5c3a20;
+    --bark:#3a2a1c;
+    --accent:#c17a3c;
+    --line:#d9c7ab;
+    --ok:#4a7c4e;
+    --card:#fffaf2;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  .app{
+    font-family: 'Georgia', 'Iowan Old Style', serif;
+    background: var(--bg);
+    color: var(--bark);
+    min-height:100vh;
+    padding: 28px 16px 60px;
+  }
+  .header{
+    max-width:720px;
+    margin:0 auto 22px;
+    border-bottom: 2px solid var(--wood);
+    padding-bottom: 14px;
+  }
+  .header h1{
+    font-size: 26px;
+    margin:0 0 4px;
+    color: var(--wood-dark);
+    letter-spacing: 0.3px;
+  }
+  .header p{
+    margin:0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 13px;
+    color:#7a6a55;
+  }
+  .wrap{max-width:720px; margin:0 auto;}
+  .search{
+    width:100%;
+    padding:12px 14px;
+    font-size:15px;
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    background: var(--card);
+    margin-bottom:16px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--bark);
+  }
+  .search:focus{outline:none; border-color:var(--accent);}
+  .city-group{margin-bottom:18px;}
+  .city-label{
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size:11px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    color: var(--wood);
+    margin: 0 0 8px 2px;
+  }
+  .item{
+    background: var(--card);
+    border:1px solid var(--line);
+    border-radius:8px;
+    margin-bottom:8px;
+    overflow:hidden;
+    transition: border-color .15s;
+  }
+  .item.status-nao{ border-color: var(--line); }
+  .item.status-contatado{ border-color:#d18f1f; border-width:2px; background:#fdf0d5; }
+  .item.status-cotacao{ border-color:#2f8f3e; border-width:2px; background:#d9f2dc; }
+  .item.status-incompleto{ border-color:#c0392b; border-width:2px; background:#fbdbd6; }
+  .badge.status-nao{ background:#eee2cc; color:#8a6a3a; }
+  .badge.status-contatado{ background:#f0a91f; color:#fff; }
+  .badge.status-cotacao{ background:#2f8f3e; color:#fff; }
+  .badge.status-incompleto{ background:#c0392b; color:#fff; }
+  .item-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:12px 14px;
+    cursor:pointer;
+  }
+  .item-head:hover{ background: #fdf5e7; }
+  .name-block{ display:flex; flex-direction:column; gap:2px; }
+  .name{ font-size:15.5px; color:var(--bark); }
+  .sub{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size:11.5px; color:#9a8a70; }
+  .contact{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size:12px; color:#7a6a55; margin-top:1px; }
+  .actions{
+    display:flex; gap:8px; margin-top:10px; margin-bottom:2px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  .actions a{
+    flex:1;
+    text-align:center;
+    padding:8px 6px;
+    border-radius:6px;
+    font-size:12.5px;
+    font-weight:600;
+    text-decoration:none;
+    border:1.3px solid var(--line);
+    color: var(--wood-dark);
+    background:#fff;
+  }
+  .actions a.wpp{ background:#e7f7ea; border-color:#bfe3c6; color:#2e6b39; }
+  .actions a.call{ background:#eaf1fb; border-color:#c3d6f2; color:#2c548f; }
+  .actions a.maps{ background:#fbeeea; border-color:#f0cbb9; color:#a0522d; }
+  .badge{
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size:10.5px;
+    font-weight:600;
+    padding:3px 8px;
+    border-radius:20px;
+    background:#eee2cc;
+    color:#8a6a3a;
+    white-space:nowrap;
+  }
+  .badge.done{ background:#e1efe1; color:var(--ok); }
+  .chevron{ font-size:12px; color:#b09a78; margin-left:8px; transition: transform .15s; }
+  .item.open .chevron{ transform: rotate(90deg); }
+  .form{
+    display:none;
+    padding: 4px 14px 16px;
+    border-top:1px solid var(--line);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  .item.open .form{ display:block; }
+  .row{ display:flex; gap:8px; margin-top:10px; }
+  .field{ flex:1; display:flex; flex-direction:column; gap:4px; }
+  .field label{ font-size:11.5px; color:#7a6a55; font-weight:600; }
+  .field input, .field select{
+    padding:9px 10px;
+    border:1.3px solid var(--line);
+    border-radius:6px;
+    font-size:14px;
+    background:#fff;
+    color:var(--bark);
+    font-family: inherit;
+  }
+  .field input:focus, .field select:focus{ outline:none; border-color:var(--accent); }
+  .save-btn{
+    margin-top:12px;
+    width:100%;
+    padding:10px;
+    background: var(--wood);
+    color:#fff;
+    border:none;
+    border-radius:6px;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    font-family: inherit;
+  }
+  .save-btn:hover{ background: var(--wood-dark); }
+  .save-btn:disabled{ opacity:0.6; cursor:default; }
+  .saved-msg{
+    text-align:center;
+    font-size:12.5px;
+    color:var(--ok);
+    margin-top:8px;
+    height:14px;
+  }
+  .empty{
+    text-align:center;
+    padding:40px 10px;
+    color:#9a8a70;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size:14px;
+  }
+  .footer-note{
+    max-width:720px;
+    margin:26px auto 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size:11.5px;
+    color:#9a8a70;
+    text-align:center;
+  }
+</style>
+
+<div class="app">
+  <div class="header">
+    <h1>Preços · Madeireiras</h1>
+    <p>Toque em uma madeireira para lançar os valores cotados</p>
+  </div>
+  <div class="wrap">
+    <input class="search" id="search" placeholder="Buscar por nome ou cidade..." />
+    <div id="list"></div>
+  </div>
+  <div class="footer-note" id="counter"></div>
+</div>
+
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import {
+  getFirestore, collection, doc, getDocs, setDoc
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyB72wCdbgK-qRXdr--4cZUlu-3IJ_bm6p4",
+  authDomain: "precos-madeireiras.firebaseapp.com",
+  projectId: "precos-madeireiras",
+  storageBucket: "precos-madeireiras.firebasestorage.app",
+  messagingSenderId: "763666818715",
+  appId: "1:763666818715:web:a44ecccba7e9790b30c83e"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const PRECOS_COLLECTION = "precos";
+
+const MADEIREIRAS = [
+  {"cidade":"Torres - RS","nome":"Madeireira Dalcegio","endereco":"Av. Castelo Branco, 2091 - Torres, RS","telefone":"+55 51 3664-2424"},
+  {"cidade":"Torres - RS","nome":"Casa da Madeira","endereco":"Av. Castelo Branco, 2280 - Torres, RS","telefone":"+55 51 3626-3572"},
+  {"cidade":"Torres - RS","nome":"ConstruSul Madeiras","endereco":"R. Gabriel Manoel Bauer, 50 - Torres, RS","telefone":"+55 51 3605-2621"},
+  {"cidade":"Torres - RS","nome":"Madeireira Martins","endereco":"Av. Castelo Branco, 650 - Torres, RS","telefone":"+55 51 3626-4853"},
+  {"cidade":"Torres - RS","nome":"Preserva Sul Madeiras Tratadas","endereco":"Av. Castelo Branco, 1540 - Torres, RS","telefone":"+55 51 3626-1625"},
+  {"cidade":"Passo de Torres - SC","nome":"MR Madeiras (Casas de Madeira e Alvenaria)","endereco":"R. Mampituba, 347 - Centro, Passo de Torres, SC","telefone":"+55 51 99757-8439"},
+  {"cidade":"Passo de Torres - SC","nome":"JR Madeiras","endereco":"Av. Interpraias - Balneário Rosa do Mar, Passo de Torres, SC","telefone":"+55 48 99100-7398"},
+  {"cidade":"Passo de Torres - SC","nome":"ConstruSul Tratamento de Madeiras","endereco":"R. Mampituba - Passo de Torres, SC","telefone":"+55 51 98100-1360"},
+  {"cidade":"Passo de Torres - SC","nome":"Rio Novo Florestal (Filial)","endereco":"Curralinhos - Passo de Torres, SC","telefone":"+55 48 98864-5966"},
+  {"cidade":"Santa Rosa do Sul - SC","nome":"Madekiko Madeireira e Materiais de Construção","endereco":"Av. Damásio Péres, 55 - Centro, Santa Rosa do Sul, SC","telefone":"+55 48 3534-1244"},
+  {"cidade":"Santa Rosa do Sul - SC","nome":"Madeireira e Serraria Sandremar","endereco":"R. Manoel Idalino Pereira, 780 - Santa Rosa do Sul, SC","telefone":"+55 48 3534-1243"},
+  {"cidade":"Santa Rosa do Sul - SC","nome":"Madereira Madetar","endereco":"Santa Rosa do Sul, SC","telefone":"+55 48 99653-9019"},
+  {"cidade":"Santa Rosa do Sul - SC","nome":"Madeireira Madebril","endereco":"Rodovia BR-101 - Santa Rosa do Sul, SC","telefone":"+55 48 3534-1373"},
+  {"cidade":"Sombrio - SC","nome":"Sombrio Madeiras","endereco":"R. Francisco Caetano Lummertz - Centro, Sombrio, SC","telefone":"+55 48 99831-2183"},
+  {"cidade":"Sombrio - SC","nome":"Di Madeira (Madeiras Tratadas / Casas de Madeira)","endereco":"BR 101, KM 436, 2052 - Parque das Avenidas, Sombrio, SC","telefone":"+55 48 98830-3732"},
+  {"cidade":"Sombrio - SC","nome":"JR Madeiras","endereco":"Av. Papa João XXIII - Sombrio, SC","telefone":"+55 48 99669-8733"},
+  {"cidade":"Sombrio - SC","nome":"Danilo Madeiras e Material de Construção","endereco":"Av. Pedro Alberto Trajano, 1850 - Nova Brasília, Sombrio, SC","telefone":"+55 48 3533-4676"},
+  {"cidade":"Araranguá - SC","nome":"Farias Madeireira","endereco":"R. Gov. Jorge Lacerda - SC-447, 2800 - Caverazinho, Araranguá, SC","telefone":"+55 48 3524-0196"},
+  {"cidade":"Araranguá - SC","nome":"Madeireira do Alemão","endereco":"Urussanguinha, Araranguá, SC","telefone":"+55 48 3522-2459"},
+  {"cidade":"Araranguá - SC","nome":"Caverá Madeireira e Agropecuária","endereco":"R. Antônio Manoel João, 949 - Lagoão, Araranguá, SC","telefone":"+55 48 3524-0727"},
+  {"cidade":"Araranguá - SC","nome":"Madeireira Martins","endereco":"R. Pedro João Pereira, 2051 - Mato Alto, Araranguá, SC","telefone":"+55 48 3524-6181"},
+  {"cidade":"Araranguá - SC","nome":"Madeireira Piazza Ltda","endereco":"R. Gov. Jorge Lacerda, 2387 - Cidade Alta, Araranguá, SC","telefone":"+55 48 3522-1976"},
+  {"cidade":"São João do Sul - SC","nome":"Madeireira Eugênio","endereco":"Rod. SC-290, km 12 - Vila Santa Catarina, São João do Sul, SC","telefone":"+55 48 3539-9041"},
+  {"cidade":"São João do Sul - SC","nome":"Madecasa Engenharia & Construções","endereco":"SC-290, 3602 - Vila Santa Catarina, São João do Sul, SC","telefone":"+55 48 98814-7133"},
+  {"cidade":"Praia Grande - SC","nome":"Madeireira Sbardeloto","endereco":"Hercílio Tomaz de Souza - Centro, Praia Grande, SC","telefone":"+55 48 98822-5927"},
+  {"cidade":"Turvo - SC","nome":"Madeireira Nono Luigi","endereco":"R. Luis Miro Fascin, 170 - Cidade Alta, Turvo, SC","telefone":"+55 48 99609-1827"},
+  {"cidade":"Turvo - SC","nome":"Madetur","endereco":"R. Rui Barbosa, 768 - Linha São Cristóvão, Turvo, SC","telefone":"+55 48 3525-0177"},
+  {"cidade":"Turvo - SC","nome":"Madeireira Daros","endereco":"Rio Aparecida, Turvo, SC","telefone":"+55 48 99981-4103"},
+  {"cidade":"Turvo - SC","nome":"Madeireira Zé Camilo","endereco":"Turvo, SC","telefone":"+55 48 3525-0870"},
+  {"cidade":"Turvo - SC","nome":"Madeireira Fraelli","endereco":"R. Davi Zacaron, 572 - Cidade Alta, Turvo, SC","telefone":"+55 48 3525-1225"},
+  {"cidade":"Jacinto Machado - SC","nome":"Serraria Bratti","endereco":"Estr. Mun. Serra da Pedra - Serra da Pedra, Jacinto Machado, SC","telefone":"+55 48 3535-9267"},
+  {"cidade":"Balneário Gaivota - SC","nome":"Madeireira Mognum (Tratamento de Madeiras)","endereco":"Rod. José Tiscoski, 1725 - Centro, Balneário Gaivota, SC","telefone":"+55 48 3533-3690"},
+  {"cidade":"Balneário Gaivota - SC","nome":"Madeireira MC Cardoso","endereco":"Rod. SC-485 - Rod. José Tiscoski, 2900 - Lagoa de Fora, Balneário Gaivota, SC","telefone":"+55 48 99631-7774"},
+  {"cidade":"Balneário Gaivota - SC","nome":"Pacheco Madeireira e Material de Construção","endereco":"Av. Crespim João Pereira (4ª Av), 440 - Jardim Ultramar, Balneário Gaivota, SC","telefone":"+55 48 99999-5563"},
+  {"cidade":"Balneário Gaivota - SC","nome":"Beira Mar Materiais de Construção","endereco":"Rua D, 1300 - Jardim Ultramar, Balneário Gaivota, SC","telefone":"+55 48 99817-0049"},
+  {"cidade":"Balneário Gaivota - SC","nome":"BR Good Friend Wood Treatment","endereco":"R. Valdomiro José Homem, Balneário Gaivota, SC","telefone":"+55 48 98825-6500"}
+].map((m,i)=>({...m, id:'m'+i}));
+
+
+const STATUS_OPTIONS = ["Não contatado","Aguardando contato","Cotação recebida","Não tem todos os produtos"];
+
+let savedData = {};
+let openId = null;
+
+async function loadAll(){
+  try{
+    const snap = await getDocs(collection(db, PRECOS_COLLECTION));
+    snap.forEach(docSnap=>{
+      savedData[docSnap.id] = docSnap.data();
+    });
+  }catch(e){ console.error('load error', e); }
+  render();
+}
+
+function render(){
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  const list = document.getElementById('list');
+  const byCity = {};
+  let count = 0;
+  MADEIREIRAS.forEach(m=>{
+    const hay = (m.nome + ' ' + m.cidade).toLowerCase();
+    if(q && !hay.includes(q)) return;
+    count++;
+    if(!byCity[m.cidade]) byCity[m.cidade] = [];
+    byCity[m.cidade].push(m);
+  });
+
+  document.getElementById('counter').textContent = count + ' madeireira(s) · ' + Object.keys(savedData).length + ' com preço lançado';
+
+  if(count === 0){
+    list.innerHTML = '<div class="empty">Nenhuma madeireira encontrada</div>';
+    return;
+  }
+
+  let html = '';
+  Object.keys(byCity).forEach(cidade=>{
+    html += `<div class="city-group"><div class="city-label">${escapeHtml(cidade)}</div>`;
+    byCity[cidade].forEach(m=>{
+      const saved = savedData[m.id];
+      const isOpen = openId === m.id;
+      const waNumber = (m.telefone || '').replace(/[^0-9]/g,'');
+      const waLink = 'https://wa.me/' + waNumber;
+      const telLink = 'tel:' + waNumber;
+      const mapsLink = 'https://www.google.com/maps/search/' + encodeURIComponent(m.nome + ', ' + m.endereco);
+      html += `
+        <div class="item ${statusClass(saved?saved.status:null)} ${isOpen?'open':''}" data-id="${m.id}">
+          <div class="item-head" onclick="toggleItem('${m.id}')">
+            <div class="name-block">
+              <div class="name">${escapeHtml(m.nome)}</div>
+              <div class="contact">${escapeHtml(m.telefone || 'sem telefone')} · ${escapeHtml(m.endereco || 'sem endereço')}</div>
+              ${saved ? `<div class="sub">Forro ${fmt(saved.forro)} · Parede ${fmt(saved.parede)} · Frete ${fmt(saved.frete)} · <b>Total ${fmt(total(saved))}</b></div>` : ''}
+            </div>
+            <div style="display:flex;align-items:center;">
+              <span class="badge ${statusClass(saved?saved.status:null)}" id="${m.id}-badge">${saved ? saved.status : 'Pendente'}</span>
+              <span class="chevron">▶</span>
+            </div>
+          </div>
+          <div class="form">
+            <div class="actions" onclick="event.stopPropagation()">
+              <a class="wpp" href="${waLink}" target="_blank" rel="noopener">WhatsApp</a>
+              <a class="call" href="${telLink}">Ligar</a>
+              <a class="maps" href="${mapsLink}" target="_blank" rel="noopener">Ver no Maps</a>
+            </div>
+            <div class="row">
+              <div class="field">
+                <label>Preço do Forro</label>
+                <input type="number" step="0.01" inputmode="decimal" id="${m.id}-forro" value="${saved?saved.forro:''}" placeholder="R$ 0,00" oninput="updateTotal('${m.id}')" />
+              </div>
+              <div class="field">
+                <label>Preço da Parede</label>
+                <input type="number" step="0.01" inputmode="decimal" id="${m.id}-parede" value="${saved?saved.parede:''}" placeholder="R$ 0,00" oninput="updateTotal('${m.id}')" />
+              </div>
+              <div class="field">
+                <label>Frete</label>
+                <input type="number" step="0.01" inputmode="decimal" id="${m.id}-frete" value="${saved?saved.frete:''}" placeholder="R$ 0,00" oninput="updateTotal('${m.id}')" />
+              </div>
+            </div>
+            <div class="row">
+              <div class="field">
+                <label>Total (soma automática)</label>
+                <input type="text" id="${m.id}-total" value="${saved?fmt(total(saved)):'—'}" disabled style="font-weight:700;background:#f3ede0;" />
+              </div>
+            </div>
+            <div class="row">
+              <div class="field">
+                <label>Situação atual</label>
+                <select id="${m.id}-status" onchange="liveStatusChange('${m.id}')">
+                  ${STATUS_OPTIONS.map(s=>`<option value="${s}" ${saved && saved.status===s ? 'selected':''}>${s}</option>`).join('')}
+                </select>
+              </div>
+            </div>
+            <button class="save-btn" onclick="saveItem('${m.id}')">Salvar</button>
+            <div class="saved-msg" id="${m.id}-msg"></div>
+          </div>
+        </div>`;
+    });
+    html += `</div>`;
+  });
+  list.innerHTML = html;
+}
+
+function fmt(v){
+  if(v === undefined || v === null || v === '') return '—';
+  const n = Number(v);
+  return isNaN(n) ? '—' : 'R$ ' + n.toFixed(2);
+}
+
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function toggleItem(id){
+  openId = openId === id ? null : id;
+  render();
+}
+
+function statusClass(status){
+  switch(status){
+    case 'Aguardando contato': return 'status-contatado';
+    case 'Cotação recebida': return 'status-cotacao';
+    case 'Não tem todos os produtos': return 'status-incompleto';
+    default: return 'status-nao';
+  }
+}
+
+function liveStatusChange(id){
+  const status = document.getElementById(id+'-status').value;
+  const cls = statusClass(status);
+  const itemEl = document.querySelector(`.item[data-id="${id}"]`);
+  itemEl.className = itemEl.className.replace(/status-\w+/g, '').trim() + ' ' + cls + (itemEl.classList.contains('open') ? ' open' : '');
+  const badgeEl = document.getElementById(id+'-badge');
+  badgeEl.className = 'badge ' + cls;
+  badgeEl.textContent = status;
+}
+
+function total(saved){
+  const f = parseFloat(saved.forro) || 0;
+  const p = parseFloat(saved.parede) || 0;
+  const fr = parseFloat(saved.frete) || 0;
+  if(!saved.forro && !saved.parede && !saved.frete) return null;
+  return f + p + fr;
+}
+
+function updateTotal(id){
+  const forro = parseFloat(document.getElementById(id+'-forro').value) || 0;
+  const parede = parseFloat(document.getElementById(id+'-parede').value) || 0;
+  const frete = parseFloat(document.getElementById(id+'-frete').value) || 0;
+  const totalEl = document.getElementById(id+'-total');
+  totalEl.value = fmt(forro + parede + frete);
+}
+
+async function saveItem(id){
+  const forro = document.getElementById(id+'-forro').value;
+  const parede = document.getElementById(id+'-parede').value;
+  const frete = document.getElementById(id+'-frete').value;
+  const status = document.getElementById(id+'-status').value;
+  const btn = document.querySelector(`.item[data-id="${id}"] .save-btn`);
+  const msg = document.getElementById(id+'-msg');
+  btn.disabled = true;
+  btn.textContent = 'Salvando...';
+  const payload = { forro, parede, frete, status, updatedAt: new Date().toISOString() };
+  try{
+    await setDoc(doc(db, PRECOS_COLLECTION, id), payload);
+    savedData[id] = payload;
+    msg.textContent = 'Salvo ✓';
+    setTimeout(()=>{ render(); }, 500);
+  }catch(e){
+    console.error(e);
+    msg.textContent = 'Erro ao salvar. Tente novamente.';
+    btn.disabled = false;
+    btn.textContent = 'Salvar';
+  }
+}
+
+document.getElementById('search').addEventListener('input', render);
+
+// Expose functions used by inline onclick/onchange handlers
+window.toggleItem = toggleItem;
+window.liveStatusChange = liveStatusChange;
+window.updateTotal = updateTotal;
+window.saveItem = saveItem;
+
+loadAll();
+</script>
+</body>
+</html>
